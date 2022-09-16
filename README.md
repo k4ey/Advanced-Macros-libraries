@@ -4,6 +4,8 @@
 
 ### Features:
 
+#### Inventory
+
 * Inventory.open(chest)
 * Inventory.calc(name)
 * Inventory.refill(name,amount)
@@ -13,5 +15,16 @@
 * Inventory.dropAllItems(items)
 * Inventory.find(name)
 * Inventory.placeInHotbar(slot,item)
+
+#### Logging
+
+* Logger.emerg(text)
+* Logger.alert(text)
+* Logger.crit(text)
+* Logger.err(text)
+* Logger.warningtext)
+* Logger.notice(text)
+* Logger.info(text)
+* Logger.debug(text)
 
 #### more docs are in the code

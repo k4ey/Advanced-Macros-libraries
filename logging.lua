@@ -1,5 +1,5 @@
 local config = {
-    logLevel = 10,
+    logLevel = 0, -- change this to allow more logs to show
     logLevels = {
         emerg=0,
         alert=1,
@@ -20,8 +20,8 @@ local config = {
         info="&b",
         debug="&8",
     },
-    sound = false,
-    save = true,
+    sound = false, -- allow sound 
+    save = true, -- allow logging to a file
 }
 local function sound(name)
     local sound = playSound(name)
@@ -46,9 +46,13 @@ local function prepare(level,text)
 end
 local logger = {
         emerg = function(text) prepare("emerg",text) end,
+        alert = function(text) prepare("alert",text) end,
+        crit = function(text) prepare("crit",text) end,
+        err = function(text) prepare("err",text) end,
         warning= function(text) prepare("warning",text) end,
         notice= function(text) prepare("notice",text) end,
         info = function(text) prepare("info",text) end,
+        debug = function(text) prepare("debug",text) end,
 }
 
 return logger
