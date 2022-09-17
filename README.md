@@ -27,4 +27,15 @@
 * Logger.info(text)
 * Logger.debug(text)
 
+#### Donkey
+
+* Donkey.sit(uuid)
+* Donkey.distanceTo(uuid)
+* Donkey.lookAt(uuid)
+* Donkey.open(uuid)
+* Donkey.walkTo(uuid)
+* Donkey.getByName(uuid)
+* Donkey.getClosest(uuid)
+* Donkey.getByUUID(uuid)
+
 #### more docs are in the code
