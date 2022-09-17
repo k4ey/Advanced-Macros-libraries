@@ -16,7 +16,7 @@ function DonkeyLib.getByUUID(uuid)
     end
 end
 
--- returns the closest donkey entity
+-- returns the closest donkey entity that is not ridden by current player
 function DonkeyLib.getClosest()
     local donkeys = {}
     local donkey
@@ -24,7 +24,9 @@ function DonkeyLib.getClosest()
         if entity and entity.class == DonkeyLib.donkeyClass then
             donkey = getEntity(entity.id)
             if donkey then
-                donkeys[#donkeys+1] = { entity=donkey, distance=DonkeyLib.distanceTo(donkey.uuid) }
+                if not playerDetails.getRidingEntity() or playerDetails.getRidingEntity().uuid ~= donkey.uuid then
+                    donkeys[#donkeys+1] = { entity=donkey, distance=DonkeyLib.distanceTo(donkey.uuid) }
+                end
             end
         end
     end
