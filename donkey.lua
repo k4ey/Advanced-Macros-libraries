@@ -1,13 +1,13 @@
-local donkeyLib = {}
+local DonkeyLib = {}
 
 
-donkeyLib.donkeyClass = "net.minecraft.entity.passive.EntityDonkey"
+DonkeyLib.donkeyClass = "net.minecraft.entity.passive.EntityDonkey"
 
 
 -- returns a donkey entity with given uuid
-function donkeyLib.getByUUID(uuid)
+function DonkeyLib.getByUUID(uuid)
     for _,entity in pairs(getEntityList()) do
-        if entity and entity.class == donkeyLib.donkeyClass then
+        if entity and entity.class == DonkeyLib.donkeyClass then
             local donkey = getEntity(entity.id)
             if donkey.uuid == uuid then
                 return donkey
@@ -17,14 +17,14 @@ function donkeyLib.getByUUID(uuid)
 end
 
 -- returns the closest donkey entity
-function donkeyLib.getClosest()
+function DonkeyLib.getClosest()
     local donkeys = {}
     local donkey
     for _,entity in pairs(getEntityList()) do
-        if entity and entity.class == donkeyLib.donkeyClass then
+        if entity and entity.class == DonkeyLib.donkeyClass then
             donkey = getEntity(entity.id)
             if donkey then
-                donkeys[#donkeys+1] = { entity=donkey, distance=donkeyLib.distanceTo(donkey.uuid) }
+                donkeys[#donkeys+1] = { entity=donkey, distance=DonkeyLib.distanceTo(donkey.uuid) }
             end
         end
     end
@@ -36,47 +36,47 @@ function donkeyLib.getClosest()
 end
 
 -- return a donkey entity with given name (not the closest one)
-function donkeyLib.getByName(name)
+function DonkeyLib.getByName(name)
     name = name or "Donkey"
     for _,entity in pairs(getEntityList()) do
-        if entity and entity.class == donkeyLib.donkeyClass and entity.name == name then
+        if entity and entity.class == DonkeyLib.donkeyClass and entity.name == name then
             return getEntity(entity.id)
         end
     end
 end
 
 -- sit on a donkey with given uuid. if donkey is too far it walks to it
-function donkeyLib.sit(uuid)
-    local donkey = donkeyLib.getByUUID(uuid)
+function DonkeyLib.sit(uuid)
+    local donkey = DonkeyLib.getByUUID(uuid)
     if not donkey then return end
     local target
     while not (playerDetails.getRidingEntity() and playerDetails.getRidingEntity().uuid == donkey.uuid) do
-        donkeyLib.lookAt(uuid)
+        DonkeyLib.lookAt(uuid)
         sleep(50)
 
         target = playerDetails.getTarget()
-        if target and target.entity and target.entity.uuid ~= uuid or donkeyLib.distanceTo(uuid) > 2.5 then donkeyLib.walkTo(uuid) end
+        if target and target.entity and target.entity.uuid ~= uuid or DonkeyLib.distanceTo(uuid) > 2.5 then DonkeyLib.walkTo(uuid) end
 
         use()
     end
 end
 
 -- get distance from player to a donkey with given uuid
-function donkeyLib.distanceTo(uuid)
-    local donkey = donkeyLib.getByUUID(uuid)
+function DonkeyLib.distanceTo(uuid)
+    local donkey = DonkeyLib.getByUUID(uuid)
     if not donkey then return end
     local currentPos = {getPlayerBlockPos()}
     return math.sqrt((currentPos[1] - donkey.pos[1])^2 + (currentPos[3] - donkey.pos[3])^2)
 end
 
 -- walk to a donkey with given uuid
-function donkeyLib.walkTo(uuid)
-    local donkey = donkeyLib.getByUUID(uuid)
+function DonkeyLib.walkTo(uuid)
+    local donkey = DonkeyLib.getByUUID(uuid)
     if not donkey then return end
     local distanceToDonkey
     while true do
-        donkeyLib.lookAt(uuid)
-        distanceToDonkey = donkeyLib.distanceTo(uuid)
+        DonkeyLib.lookAt(uuid)
+        distanceToDonkey = DonkeyLib.distanceTo(uuid)
         if distanceToDonkey  < 2.5   then return end
 
         forward(100)
@@ -85,14 +85,14 @@ function donkeyLib.walkTo(uuid)
 end
 
 -- open donkey's inventory
-function donkeyLib.open()
+function DonkeyLib.open()
     getMinecraft().field_71439_g:func_175163_u()
 end
 
 -- look at the middle of a donkey with given UUID
-function donkeyLib.lookAt(uuid)
-    local donkey = donkeyLib.getByUUID(uuid)
+function DonkeyLib.lookAt(uuid)
+    local donkey = DonkeyLib.getByUUID(uuid)
     lookAt(donkey.pos[1]+0.1,donkey.pos[2]+0.6,donkey.pos[3]+0.1)
 end
 
-return donkeyLib
+return DonkeyLib
