@@ -7,7 +7,8 @@
 #### Inventory
 
 * Inventory.open(chest)
-* Inventory.calc(name)
+* Inventory.calcInventory(name)
+* Inventory.calcContainer(name)
 * Inventory.refill(name,amount)
 * Inventory.calcEmptySlots()
 * Inventory.stackUnstacked(stackableItems)
