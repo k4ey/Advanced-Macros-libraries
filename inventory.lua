@@ -16,6 +16,20 @@ function Inventory.open(chest)
     sleep(200)
 end
 
+-- count items with the same name in inventory AND curently opened container
+function Inventory.calc(material)
+    local totalSlots = inv.getTotalSlots()
+    local chestStart = Inventory.inventoryPositions(totalSlots)["starts"]
+    local items = 0
+    for i=chestStart,totalSlots do
+        local item = inv.getSlot(i)
+        if item and item.name == material then
+            items = items + item.amount
+        end
+    end
+    return items
+end
+
 -- count items with the same name in inventory
 function Inventory.calcInventory(material)
     local totalSlots = inv.getTotalSlots()
@@ -30,6 +44,7 @@ function Inventory.calcInventory(material)
     return items
 end
 
+-- count items with the same name in curently opened container
 function Inventory.calcContainer(material)
     local totalSlots = inv.getTotalSlots()
     local chestStart = Inventory.inventoryPositions(totalSlots)["starts"]
@@ -173,4 +188,5 @@ function Inventory.placeInHotbar(pos,item)
     sleep(250)
     inv.click(itemPos) -- put the swapped item in the pos of previous item.
 end
+
 return Inventory

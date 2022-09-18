@@ -7,6 +7,7 @@
 #### Inventory
 
 * Inventory.open(chest)
+* Inventory.calc(name)
 * Inventory.calcInventory(name)
 * Inventory.calcContainer(name)
 * Inventory.refill(name,amount)
@@ -23,7 +24,7 @@
 * Logger.alert(text)
 * Logger.crit(text)
 * Logger.err(text)
-* Logger.warningtext)
+* Logger.warning(text)
 * Logger.notice(text)
 * Logger.info(text)
 * Logger.debug(text)
