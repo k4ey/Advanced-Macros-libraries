@@ -97,4 +97,11 @@ function DonkeyLib.lookAt(uuid)
     lookAt(donkey.pos[1]+0.1,donkey.pos[2]+0.6,donkey.pos[3]+0.1)
 end
 
+function DonkeyLib.dismount()
+    while playerDetails.isPassenger() do
+        sneak(250)
+        sleep(250)
+    end
+end
+
 return DonkeyLib
