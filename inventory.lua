@@ -71,8 +71,8 @@ function Inventory.inventoryPositions(numOfSlots)
 end
 
 
--- take items from already opened container. Takes full stacks.
-function Inventory.take(itemName,amount)
+-- Check if has enough items in inventory. If not then take items from already opened container. Takes full stacks. Closes the inventory.
+function Inventory.refill(itemName,amount)
     local totalSlots = inv.getTotalSlots()
     if totalSlots == 46 then return end
     local chestEnds = Inventory.inventoryPositions(totalSlots)["ends"]
@@ -84,6 +84,26 @@ function Inventory.take(itemName,amount)
         if item and item.name == itemName then inv.quick(i) sleep(10) end
     end
     inv.close()
+    return "NOT ENOUGH ITEMS IN CHEST"
+end
+
+-- take items from already opened container. Takes full stacks. Calcs how many items took on the go. Does not close the inventory afterwards
+function Inventory.take(itemName,amount)
+    local totalSlots = inv.getTotalSlots()
+    if totalSlots == 46 then return end
+    local chestEnds = Inventory.inventoryPositions(totalSlots)["ends"]
+
+    local item
+    local took = 0
+    for i=1,chestEnds do
+        if took >= amount then sleep(250) return true end
+        item = inv.getSlot(i)
+        if item and item.name == itemName then
+            inv.quick(i)
+            took = took + item.amount
+            sleep(100)
+        end
+    end
     return "NOT ENOUGH ITEMS IN CHEST"
 end
 
