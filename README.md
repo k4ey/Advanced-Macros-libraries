@@ -11,6 +11,8 @@
 * Inventory.calcInventory(name)
 * Inventory.calcContainer(name)
 * Inventory.refill(name,amount)
+* Inventory.take(name,amount)
+* Inventory.put(name,amount)
 * Inventory.calcEmptySlots()
 * Inventory.stackUnstacked(stackableItems)
 * Inventory.dropUnused(usedItems)
