@@ -42,4 +42,8 @@
 * DonkeyLib.getClosest(uuid)
 * DonkeyLib.getByUUID(uuid)
 
+#### Relogging
+
+* Relogging(serverIP,tiemoutDuration)
+
 #### more docs are in the code
