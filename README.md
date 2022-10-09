@@ -7,18 +7,14 @@
 #### Inventory
 
 * Inventory.open(chest)
-* Inventory.calc(name)
-* Inventory.calcInventory(name)
-* Inventory.calcContainer(name)
-* Inventory.refill(name,amount)
-* Inventory.take(name,amount)
-* Inventory.put(name,amount)
-* Inventory.calcEmptySlots()
-* Inventory.stackUnstacked(stackableItems)
-* Inventory.dropUnused(usedItems)
-* Inventory.dropAllItems(items)
-* Inventory.find(name)
+* Inventory.calc(name,range)
+* Inventory.move(name,amount,source,destination)
+* Inventory.refill(name,amount,source,destination)
+* Inventory.calcEmptySlots(range)
+* Inventory.dropItems(range)
+* Inventory.find(name,range)
 * Inventory.placeInHotbar(slot,item)
+* Inventory.deepFind(itemAttribute,range)
 
 #### Logging
 

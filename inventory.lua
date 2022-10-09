@@ -1,7 +1,57 @@
-local Inventory = {}
 local inv = openInventory()
 
+local Inventory = {}
+Inventory.mappings = {}
+Inventory.mappings.inventory = {
+    [63]={ starts=28,ends=63 }, -- single chest
+    [90]={ starts=57,ends=90 }, -- double chest
+    [46]={ starts=10,ends=45 }, -- nothing opened
+    [53]={ starts=18,ends=53 } -- donkey
+}
+Inventory.mappings.container = {
+    [63]={ starts=1,ends=27 }, -- single chest
+    [90]={ starts=1,ends=56 }, -- double chest
+    [46]={ starts=10,ends=45 }, -- nothing opened
+    [53]={ starts=3,ends=17 } -- donkey
+}
 
+--translates mappings "inventory","container","all",{start,end},{slot1,slot2,slot3...}
+function Inventory.mappings.getMappings(slots)
+    local totalSlots = inv.getTotalSlots()
+    -- inventory         - from the end of the chest to the last slot of the inventory
+    -- container         - from the first slot of a container to the last slot of the container
+    -- all               - from the first slot of a container to the last slot of the inventory
+    -- <table>#2         - range from first to the second 
+    -- <table>#1 or more - every given slot
+
+    if slots == "inventory" then
+        slots = {
+            starts=Inventory.mappings.inventory[totalSlots].starts,
+            ends=Inventory.mappings.inventory[totalSlots].ends}
+
+    elseif slots == "container" then
+        slots = {
+            starts=Inventory.mappings.container[totalSlots].starts,
+            ends=Inventory.mappings.container[totalSlots].ends}
+
+    elseif slots == "all" then
+        slots = {
+            starts=Inventory.mappings.container[totalSlots].starts,
+            ends=Inventory.mappings.inventory[totalSlots].ends}
+
+    elseif type(slots) == "table" and #slots == 2 then
+        slots = {
+            starts=slots[1],
+            ends=slots[2]}
+    elseif type(slots) == "table" and ( #slots > 2 or #slots == 1 ) then
+        return slots
+    end
+    local iterSlots = {}
+    for i=slots.starts,slots.ends do
+        iterSlots[#iterSlots+1] = i
+    end
+    return iterSlots
+end
 
 -- open chest at coords {x,y,z}
 function Inventory.open(chest)
@@ -16,90 +66,36 @@ function Inventory.open(chest)
     sleep(200)
 end
 
--- count items with the same name in inventory AND curently opened container
-function Inventory.calc(material)
-    local totalSlots = inv.getTotalSlots()
-    local chestStart = Inventory.inventoryPositions(totalSlots)["starts"]
+-- returns number of items with the same name
+function Inventory.calc(itemName,slots)
+    slots = Inventory.mappings.getMappings(slots)
     local items = 0
-    for i=chestStart,totalSlots do
-        local item = inv.getSlot(i)
-        if item and item.name == material then
+
+    if not slots then return end
+    for _,slot in ipairs(slots) do
+        local item = inv.getSlot(slot)
+        if item and item.name == itemName then
             items = items + item.amount
         end
     end
     return items
 end
 
--- count items with the same name in inventory
-function Inventory.calcInventory(material)
-    local totalSlots = inv.getTotalSlots()
-    local inventoryAt = Inventory.inventoryPositions(totalSlots)["ends"]
-    local items = 0
-    for i=inventoryAt+1,totalSlots do
-        local item = inv.getSlot(i)
-        if item and item.name == material then
-            items = items + item.amount
-        end
-    end
-    return items
-end
-
--- count items with the same name in curently opened container
-function Inventory.calcContainer(material)
-    local totalSlots = inv.getTotalSlots()
-    local chestStart = Inventory.inventoryPositions(totalSlots)["starts"]
-    local chestEnd = Inventory.inventoryPositions(totalSlots)["ends"]
-    local items = 0
-    for i=chestStart, chestEnd do
-        local item = inv.getSlot(i)
-        if item and item.name == material then
-            items = items + item.amount
-        end
-    end
-    return items
-end
-
--- returns "mappings" for each vanilla inventory size
-function Inventory.inventoryPositions(numOfSlots)
-    local possible_inventories = {
-        [63]={ ends=27, starts=1 }, -- single chest
-        [90]={ ends=56, starts=1}, -- double chest
-        [46]={ ends=9, starts=9}, -- nothing opened
-        [53]={ ends=17, starts=3} -- donkey
-    }
-    return possible_inventories[numOfSlots]
-end
-
-
--- Check if has enough items in inventory. If not then take items from already opened container. Takes full stacks. Closes the inventory.
-function Inventory.refill(itemName,amount)
+-- moves given amount items from <from> to <to> eg "inventory" -> "container"
+function Inventory.move(itemName,amount,from,to)
     local totalSlots = inv.getTotalSlots()
     if totalSlots == 46 then return end
-    local chestEnds = Inventory.inventoryPositions(totalSlots)["ends"]
+    if type(to) ~= "string" then error(( "%s expected string!" ):format(to)) end
 
-    local item
-    for i=1,chestEnds do
-        if Inventory.calcInventory(itemName) >= amount then inv.close() sleep(250) return true end
-        item = inv.getSlot(i)
-        if item and item.name == itemName then inv.quick(i) sleep(10) end
-    end
-    inv.close()
-    return "NOT ENOUGH ITEMS IN CHEST"
-end
-
--- take items from already opened container. Takes full stacks. Calcs how many items took on the go. Does not close the inventory afterwards
-function Inventory.take(itemName,amount)
-    local totalSlots = inv.getTotalSlots()
-    if totalSlots == 46 then return end
-    local chestEnds = Inventory.inventoryPositions(totalSlots)["ends"]
+    local slots = Inventory.mappings.getMappings(from)
 
     local item
     local took = 0
-    for i=1,chestEnds do
+    for _,slot in ipairs(slots) do
         if took >= amount then sleep(250) return true end
-        item = inv.getSlot(i)
+        item = inv.getSlot(slot)
         if item and item.name == itemName then
-            inv.quick(i)
+            inv.quick(slot)
             took = took + item.amount
             sleep(100)
         end
@@ -107,29 +103,30 @@ function Inventory.take(itemName,amount)
     return "NOT ENOUGH ITEMS IN CHEST"
 end
 
--- put items from inventory to already opened container. Takes full stacks
-function Inventory.put(itemName,amount)
+-- does the same as Inventory.move but rather than calcing how many it moved, checks if there are enough items in the container already
+function Inventory.refill(itemName,amount,from,to)
     local totalSlots = inv.getTotalSlots()
     if totalSlots == 46 then return end
-    local invStarts = Inventory.inventoryPositions(totalSlots)["starts"]
+    if type(to) ~= "string" then error(( "%s expected string!" ):format(to)) end
+
+    local slots = Inventory.mappings.getMappings(from)
 
     local item
-    for i=invStarts,totalSlots do
-        if Inventory.calcContainer(itemName) >= amount then inv.close() sleep(250) return true end
-        item = inv.getSlot(i)
-        if item and item.name == itemName then inv.quick(i) sleep(10) end
+    for _,slot in ipairs(slots) do
+        if Inventory.calc(itemName,to) >= amount then inv.close() sleep(250) return true end
+        item = inv.getSlot(slot)
+        if item and item.name == itemName then inv.quick(slot) sleep(10) end
     end
     inv.close()
     return "NOT ENOUGH ITEMS IN INV"
 end
 
--- count empty slots 
-function Inventory.calcEmptySlots()
-    local totalSlots = inv.getTotalSlots()
-    local inventoryAt = Inventory.inventoryPositions(totalSlots)["ends"]
+-- returns number of empty slots
+function Inventory.calcEmptySlots(slots)
+    slots = Inventory.mappings.getMappings(slots)
     local emptySlots = 0
-    for i=inventoryAt+1,totalSlots-1 do
-        local item = inv.getSlot(i)
+    for _,slot in ipairs(slots) do
+        local item = inv.getSlot(slot)
         if not item then
             emptySlots = emptySlots + 1
         end
@@ -137,76 +134,77 @@ function Inventory.calcEmptySlots()
     return emptySlots
 end
 
--- shift clicks specified item in inv. This allows to "stack" unstacked items. Breaks sometimes.
-function Inventory.stackUnstacked(stackableItems)
-    --[[ local stackableItems= {
-        ["minecraft:carpet"]=true
-    } ]]
-    local totalSlots = inv.getTotalSlots()
-    local inventoryAt = Inventory.inventoryPositions(totalSlots)["ends"]
-    local item
-    for i=totalSlots-1,inventoryAt+1,-1 do
-        item = inv.getSlot(i)
-        if item and stackableItems[item.id] then
-            inv.quick(i)
-            sleep(150)
-        end
-    end
-end
-
--- drop all items from inventory except specified ones
-function Inventory.dropUnused(usedItems)
-    --[[ local usedItems = {
-        ["minecraft:carpet"]=true,
-    } ]]
-    local totalSlots = inv.getTotalSlots()
-    local inventoryAt = Inventory.inventoryPositions(totalSlots)["ends"]
-    local item
-    for i=inventoryAt+1,totalSlots-1 do
-        item = inv.getSlot(i)
-        if item and not usedItems[item.id] then
-            inv.drop(i)
-        end
-    end
-end
-
--- drops all items with given name 
-function Inventory.dropAllItems(items)
+-- drops items with  given name from given range.
+function Inventory.dropItems(items,slots)
     --{ ["minecraft:carpet"]=true, } 
-    local totalSlots = inv.getTotalSlots()
-    local inventoryAt = Inventory.inventoryPositions(totalSlots)["ends"]
+    slots = Inventory.mappings.getMappings(slots)
     local item
-    for i=inventoryAt+1,totalSlots-1 do
-        item = inv.getSlot(i)
+    for _,slot in ipairs(slots) do
+        item = inv.getSlot(slot)
         if item and items[item.id] then
-            inv.drop(i,true)
+            inv.drop(slot,true)
         end
     end
 end
 
--- find item with specified name in the inventory and returns its slot
-function Inventory.find(material)
-    local totalSlots = inv.getTotalSlots()
-    local inventoryAt = Inventory.inventoryPositions(totalSlots)["ends"]
-    for i=inventoryAt+1,totalSlots do
-        local item = inv.getSlot(i)
-        if item and item.name == material then
-            return i
+-- returns the slot of item with given name
+function Inventory.find(itemName,slots)
+    slots = Inventory.mappings.getMappings(slots)
+    local item
+    for _,slot in ipairs(slots) do
+        item = inv.getSlot(slot)
+        if item and item.name == itemName then
+            return slot
         end
     end
     return false
 end
 
--- find item in inventory and place it in hotbar
-function Inventory.placeInHotbar(pos,item)
-    local itemPos = Inventory.find(item)
-    pos = pos + 36
+-- places item with given name in your specified hotbar slot
+function Inventory.placeInHotbar(item,pos)
+    local itemPos = Inventory.find(item,"all")
+    local totalSlots = inv.getTotalSlots()
+    if totalSlots == 46 then totalSlots = totalSlots - 1 end -- smth strange 
+    pos = totalSlots - 9 + pos
     if itemPos == pos then return end
     inv.click(itemPos) -- take the item
     sleep(250)
     inv.click(pos) -- swap it with desired slot
     sleep(250)
     inv.click(itemPos) -- put the swapped item in the pos of previous item.
+end
+
+-- helper function for Inventory.deepFind
+function Inventory.deepFindCheckItem(item,itemInfo)
+    local found
+    if type(item) == "table" then
+        for _,content in pairs(item) do
+            if content then
+                found = Inventory.deepFindCheckItem(content,itemInfo)
+                if found then return found end
+            end
+        end
+    elseif type(item) == "string" then
+        if item:find(itemInfo) then
+            return item
+        end
+    else return end
+end
+
+-- loops thru every attribute of an item looking for occurence of itemInfo
+-- returns slot (number) and itemData (attribute in which the thing occured)
+function Inventory.deepFind(itemInfo,slots)
+    slots = Inventory.mappings.getMappings(slots)
+    local item
+    local itemData
+    for _,slot in ipairs(slots) do
+        item = inv.getSlot(slot)
+        if item then
+            itemData = Inventory.deepFindCheckItem(item,itemInfo)
+            if itemData then return slot, itemData end
+        end
+    end
+    return false
 end
 
 return Inventory
