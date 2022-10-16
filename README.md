@@ -42,4 +42,10 @@
 
 * Relogging(serverIP,tiemoutDuration)
 
+#### relativeBlocks 
+
+ * Blocks.getBlock(position,settings)
+ * Blocks.addIndices(table1,table2)
+ * Blocks.direction(direction,numberOfBlocks)
+
 #### more docs are in the code
