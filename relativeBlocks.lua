@@ -1,5 +1,5 @@
 local Blocks = {}
-local minecraft = luajava.bindClass("com.theincgi.advancedMacros.AdvancedMacros"):getMinecraft()
+local minecraft = getMinecraft()
 
 -- returns a table of relative coords based on your direction and selected side.
 -- for example dir = "left" will return {-1,0,0} when looking north
@@ -25,8 +25,6 @@ function Blocks.direction(dir,offset)
     return x*offset, y*offset, z*offset
 end
 
-log({ Blocks.direction("") })
-
 -- adds item at index 1 in table 1 to index 1 in table 2 and so on
 -- accepts two tables
 function Blocks.addIndices(t1,t2)
@@ -48,7 +46,7 @@ function Blocks.getBlockByDirection(direction,position,horizontalOffset,vertical
     position = position or {getPlayerBlockPos()}
     horizontalOffset = horizontalOffset or 1
     verticalOffset = verticalOffset or 0
-    local offset = Blocks.direction(direction,horizontalOffset)
+    local offset = { Blocks.direction(direction,horizontalOffset) }
     local blockPos = Blocks.addIndices(offset,position)
     blockPos[2] = blockPos[2] + verticalOffset
 
@@ -59,7 +57,7 @@ function Blocks.getBlockByRelative(relative,position)
     if relative == nil then error("direction not specified!") end
 
     position = position or {getPlayerBlockPos()}
-    local blockPos = Blocks.addIndices(position,position)
+    local blockPos = Blocks.addIndices(position,relative)
 
     return getBlock(table.unpack(blockPos))
 end
