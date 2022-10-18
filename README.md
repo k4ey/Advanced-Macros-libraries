@@ -44,8 +44,9 @@
 
 #### relativeBlocks 
 
- * Blocks.getBlock(position,settings)
+ * Blocks.getBlockByRelative(relative,position)
+ * Blocks.getBlockByDirection(direction,position,horizontalOffset,verticalOffset)
  * Blocks.addIndices(table1,table2)
- * Blocks.direction(direction,numberOfBlocks)
+ * Blocks.direction(direction,offset)
 
 #### more docs are in the code
