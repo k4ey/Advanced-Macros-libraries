@@ -41,7 +41,7 @@ returns block at position specified by <position> adjusted by direction faced.
 <direction> specifies direction to take block from "right", "left", "forward", "back", "up", "down"
 ]]--
 function Blocks.getBlockByDirection(direction,position,horizontalOffset,verticalOffset)
-    if direction == nil then error("direction not specified!") end
+    assert(direction, "direction not specified!")
 
     position = position or {getPlayerBlockPos()}
     horizontalOffset = horizontalOffset or 1
@@ -54,12 +54,57 @@ function Blocks.getBlockByDirection(direction,position,horizontalOffset,vertical
 end
 
 function Blocks.getBlockByRelative(relative,position)
-    if relative == nil then error("direction not specified!") end
+    assert(relative, "relative position not specified!")
 
     position = position or {getPlayerBlockPos()}
     local blockPos = Blocks.addIndices(position,relative)
 
     return getBlock(table.unpack(blockPos))
+end
+
+--[[ 
+clears HUD3D and creates prop blocks at given position.
+<blocks> can be: 
+    - a table of rayTrace block instances
+    - a single rayTrace block instance
+    - a table of multiple tables with coords 
+    - a single table with coords
+<delay> takes time between showing each prop in miliseconds
+ ]]
+function Blocks.show(blocks,enableXray,delay)
+    assert(type(blocks) == "table", "invalid type!")
+    assert(type(delay) == "number" or type(delay) == "nil", "invalid delay!" )
+    assert(type(enableXray) == "boolean" or type(delay) == "nil", "enableXray only takes boolean!" )
+
+    local props = {}
+
+    -- prepare coords to look like this:
+    -- { {x,y,z},{x,y,z},{x,y,z} }
+
+    -- { blocks[1].pos = {x,y,z}, blocks[2].pos = {x,y,z}}
+    if type( blocks[1] ) == "table" and blocks[1].pos then
+        for _,block in pairs(blocks) do
+            props[#props+1] = block.pos
+        end
+
+    -- {x,y,z}
+    elseif #blocks == 3 and type(blocks[1]) == "number" then
+        props = { blocks }
+
+    -- { {x,y,z},{x,y,z},{x,y,z} }
+    elseif #blocks > 1 then
+        props = blocks
+    end
+
+    -- clear props
+    hud3D.clearAll()
+    -- create props
+    for i=1, #props do
+        props[i] = hud3D.newBlock(table.unpack(props[i]))
+        props[i].enableDraw()
+        if enableXray then props[i].xray() end
+        if delay then sleep(delay) end
+    end
 end
 
 return Blocks

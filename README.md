@@ -48,5 +48,6 @@
  * Blocks.getBlockByDirection(direction,position,horizontalOffset,verticalOffset)
  * Blocks.addIndices(table1,table2)
  * Blocks.direction(direction,offset)
+ * Blocks.show(blocks,allowXray,delay)
 
 #### more docs are in the code
