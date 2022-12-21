@@ -107,4 +107,29 @@ function Blocks.show(blocks,enableXray,delay)
     end
 end
 
+-- digs block on given position. 
+-- <blockPos> takes a table of coords of the block
+-- <pickaxeSlot> optional, if not specified uses the current tool, takes a number between 1,9 which indicates slot in hotbar
+-- <delay> optional, takes a delay between checking if the mining is complete. In miliseconds
+function Blocks.mine(blockPos,pickaxeSlot,delay)
+    delay = delay or 600
+    assert(type(blockPos) == "table" and type(blockPos[1]) == "number", "invalid position!")
+    assert(type(pickaxeSlot) == "number" or pickaxeSlot == nil, "invalid slot")
+    assert(type(delay) == "number", "invalid delay")
+    -- restoring game focus -- this is workaround due bug
+    minecraft.field_71415_G = true -- mc.inGameHasFocus = true
+    while getBlock(table.unpack(blockPos)).name ~= "Air" do
+
+        if pickaxeSlot then setHotbar(pickaxeSlot) end
+        sleep(10)
+
+        lookAt(blockPos[1],blockPos[2],blockPos[3])
+        sleep(10)
+        attack(delay+20)
+        sleep(delay)
+    end
+    sleep(20)
+end
+Blocks.mine({getPlayerBlockPos()},8,50)
+
 return Blocks

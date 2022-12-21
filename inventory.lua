@@ -133,6 +133,19 @@ function Inventory.calcEmptySlots(slots)
     end
     return emptySlots
 end
+-- returns an array with empty slots
+function Inventory.getEmptySlots(slots)
+    slots = Inventory.mappings.getMappings(slots)
+    local emptySlots = {}
+    for _,slot in ipairs(slots) do
+        local item = inv.getSlot(slot)
+        if not item then
+            emptySlots[#emptySlots+1] = slot
+        end
+    end
+    return emptySlots
+end
+
 
 -- drops items with  given name from given range.
 function Inventory.dropItems(items,slots)
@@ -148,12 +161,13 @@ function Inventory.dropItems(items,slots)
 end
 
 -- returns the slot of item with given name
-function Inventory.find(itemName,slots)
+function Inventory.find(itemName,slots,amount)
+    amount = amount or 1
     slots = Inventory.mappings.getMappings(slots)
     local item
     for _,slot in ipairs(slots) do
         item = inv.getSlot(slot)
-        if item and item.name == itemName then
+        if item and item.name == itemName and item.amount >= amount then
             return slot
         end
     end
@@ -206,5 +220,65 @@ function Inventory.deepFind(itemInfo,slots)
     end
     return false
 end
+
+
+-- parses the recipe array to a more suitable format for dragClick
+local function parseRecipe(recipe)
+    local parsedRecipe = {}
+    for craftingPos,itemName in pairs(recipe) do
+        if itemName then
+            parsedRecipe[itemName] = parsedRecipe[itemName] or {}
+            parsedRecipe[itemName][#parsedRecipe[itemName]+1] =  craftingPos + 1
+        end
+    end
+    return parsedRecipe
+end
+
+-- clears crafting slots. If inventory is full, drops the items from there
+local function clearCraftingSlots(recipe)
+    local startSlot = 2
+    local endSlot
+    local invFull = Inventory.calcEmptySlots("all") == 0
+    if #recipe == 4 then
+        endSlot = 5
+    elseif #recipe == 9 then
+        endSlot = 10
+    end
+    for slot=startSlot,endSlot do
+        if not invFull then
+            inv.quick(slot)
+        else
+            log("dropping")
+            log(slot)
+            inv.drop(slot,true)
+        end
+    end
+end
+-- accepts an array of 9 or 4 strings. 
+-- the array consists of Names of items on corresponding slots in the crafting place
+-- assumes you have already opened the craftingtable (if needed)
+-- this function is bad and its the implementation is the first thing i came up with. DO NOT TRUST THIS!!!
+function Inventory.craft(recipe)
+    local craftingOutput = 1
+    local itemAt
+    local parsedRecipe = parseRecipe(recipe)
+    clearCraftingSlots(recipe)
+
+    for itemName, itemsAt in pairs(parsedRecipe) do
+        itemAt = Inventory.find(itemName,"inventory",#parsedRecipe[itemName])
+        if not itemAt then return false end
+        inv.click(itemAt)
+        sleep(100)
+        inv.dragClick(itemsAt)
+    end
+
+    inv.quick(craftingOutput)
+    clearCraftingSlots(recipe)
+    inv.closeAndDrop()
+end
+Inventory.craft(
+-- {false,false, "Oak Wood",false }
+{false,false,"Oak Wood Planks","Oak Wood Planks"}
+)
 
 return Inventory
