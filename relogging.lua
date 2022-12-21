@@ -27,4 +27,4 @@ local function relog(ip,timeout,delay)
         end
     end
 end
-relog("8b8t.me",10,1000)
+return relog
