@@ -42,7 +42,7 @@ local function prepare(level,text)
     if config.sound then sound("pop.wav") end
     if config.save then dump(text,level) end
 
-    log(("&8[%s] %s[%s] : &7%s"):format(os.date("%X"),config.logColors[level],typ:upper(),text))
+    log(("&8[%s] %s[%s] : &7%s"):format(os.date("%X"),config.logColors[level],level:upper(),text))
 end
 local logger = {
         emerg = function(text) prepare("emerg",text) end,
